@@ -4,17 +4,14 @@ from model import Model
 class Player(Model):
 
     def __init__(self):
-        super.__init__(table='players', fields=['login', 'password', 'token', 'pokebolls', 'experience', 'level'])
+        super().__init__(table='players', fields=['login', 'password', 'token', 'pokebolls', 'experience', 'level'])
+        self.fillable = ['login', 'password', 'token']
+        self.primary_key = 'name'
 
-    def create(self, login, password):
-        from hashlib import sha512, sha256
-        import time
-        _hash = sha512()
-        _hash.update(password.encode('utf8'))
-        _hash = _hash.hexdigest()
-        token = sha256()
-        token.update(str(time.time()).encode('utf8'))
-        token = token.hexdigest()
+    def create(self, login, password, token):
+        result = self.create({'login': login, 'password': password, 'token': token})
+
+
 
 
 class Pokemon:

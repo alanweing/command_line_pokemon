@@ -1,9 +1,18 @@
-from model import Model
+# from model import Model
+#
+# def main():
+#     test = Model('pokemons', ['name', 'category', 'rarity', 'ability', 'evolves_from', 'hp', 'attack', 'defense', 'special_attack', 'special_defense', 'speed'])
+#     # test.primary_key = 'name'
+#     # print(test.first())
+#     # print(test.find('Arbok'))
+#     test.fillable = ['name', 'category', 'rarity']
+#     test.create({'name': 'nome', 'category':'categoria', 'rarity': 'raridade'})
+#
+#
+# if __name__ == '__main__':
+# 	main()
 
-def main():
-	test = Model('pokemons', ['name', 'category', 'rarity', 'ability', 'evolves_from', 'hp', 'attack', 'defense', 'special_attack', 'special_defense', 'speed'])
-	print(test.select())
+from controllers import PlayerController
 
-
-if __name__ == '__main__':
-	main()
+player = PlayerController.create('teste', '123456')
+print(player)
