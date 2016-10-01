@@ -11,8 +11,9 @@ class Input:
     INT    = 'integer'
     FLOAT  = 'float'
     STRING = 'string'
+    MIXED = 'mixed'
 
-    _input = None
+    last_input = None
     _dict = None
 
 
@@ -20,11 +21,11 @@ class Input:
         self._dict = _dict
         if self.check_keys([self.TYPE, self.MESSAGE, self.ACCEPTABLE], self._dict):
             try:
-                self._input = input(_print.question(str(_dict[self.MESSAGE])))
+                self.last_input = input(_print.question(str(_dict[self.MESSAGE])))
             except KeyboardInterrupt:
                 _print.colorize('KeyboardInterrupt', color=_print.Color.RED, alert=True)
                 exit(1)
-            if self.LOOP in self._dict and self._dict[self.LOOP] == True and self._input == '':
+            if self.LOOP in self._dict and self._dict[self.LOOP] == True and self.last_input == '':
                 return False
             self.cast_input()
             if not self.validate_input():
@@ -38,7 +39,7 @@ class Input:
                     values = values[:-1]
                     _print.info('Acceptable values: [%s]' % values)
                 self.get_input(self._dict)
-            return True
+            return self.last_input
         else:
             _print.danger('Missing keys!')
             return False
@@ -56,17 +57,19 @@ class Input:
         try:
             _type = self._dict[self.TYPE]
             if _type == self.INT:
-                self._input = int(self._input)
+                self.last_input = int(self.last_input)
             elif _type == self.FLOAT:
-                self._input = float(self._input)
+                self.last_input = float(self.last_input)
+            elif _type == self.MIXED:
+                self.last_input = str(self.last_input)
             elif _type == self.STRING:
                 try:
-                    self._input = int(self._input)
+                    self.last_input = int(self.last_input)
                 except ValueError:
                     try:
-                        self._input = float(self._input)
+                        self.last_input = float(self.last_input)
                     except ValueError:
-                        self._input = str(self._input)
+                        self.last_input = str(self.last_input)
                     else:
                         _print.warning('Please, enter a valid value [%s].' % self._dict[self.TYPE])
                         self.get_input(self._dict)
@@ -81,4 +84,11 @@ class Input:
     def validate_input(self):
         if self._dict[self.ACCEPTABLE] is None:
             return True
-        return True if self._input in self._dict[self.ACCEPTABLE] else False
+        return True if self.last_input in self._dict[self.ACCEPTABLE] else False
+
+    def get(self, message, _type, acceptable, loop=False):
+        return self.get_input({
+            self.TYPE: _type,
+            self.MESSAGE: message,
+            self.ACCEPTABLE: acceptable,
+            self.LOOP: loop})

@@ -12,7 +12,11 @@
 # if __name__ == '__main__':
 # 	main()
 
-from controllers import PlayerController
+# from controllers import PlayerController
 
-player = PlayerController.create('teste', '123456')
-print(player)
+# # player = PlayerController.create('teste', '123456')
+# print(PlayerController.authorize('teste', '123456'))
+
+from controllers import PokemonController
+p = PokemonController()
+PokemonController.hunt()

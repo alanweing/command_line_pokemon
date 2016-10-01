@@ -6,12 +6,22 @@ class Player(Model):
     def __init__(self):
         super().__init__(table='players', fields=['login', 'password', 'token', 'pokebolls', 'experience', 'level'])
         self.fillable = ['login', 'password', 'token']
-        self.primary_key = 'name'
+        self.primary_key = 'login'
+        self.token = None
 
     def create(self, login, password, token):
-        result = self.create({'login': login, 'password': password, 'token': token})
+        result = super().create({'login': login, 'password': password, 'token': token})
+        if result is not False:
+            self.login = login
+            self.token = token
+        return result
 
-
+    def authorize(self, login, password):
+        result = self.find(login, conditions="password='{}'".format(password), fields='token')
+        if result is not False:
+            self.login = login
+            self.token = result['token']
+        return result
 
 
 class Pokemon:

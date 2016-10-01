@@ -13,15 +13,8 @@ class Model(MariaDB):
         self.fields = fields
         self.primary_key = 'id'
         self.fillable = []
-
-    def __str__(self):
-        return self.__dict__()
-    #
-    # def __repr__(self):
-    #   pass
-    #
-    # def __del__(self):
-    #   pass
+        self.error_code = None
+        self.last_query = None
 
     def select(self, fields='*', conditions=None, limit=None):
         query = 'SELECT {} FROM {}'.format(fields, self.table)
@@ -29,10 +22,12 @@ class Model(MariaDB):
             query += ' WHERE {}'.format(conditions)
         if limit is not None:
             query += ' LIMIT {}'.format(limit)
+        self.last_query = query
         with self.connection.cursor() as cursor:
             try:
                 cursor.execute(query)
-                return self.parse_query_result(cursor.fetchall())
+                # return self.parse_query_result(cursor.fetchall())
+                return cursor.fetchall()
             except err.MySQLError as error:
                 return self.database_error(error)
 
@@ -44,6 +39,7 @@ class Model(MariaDB):
             _print.warning('Missing keys on {}.create() dictionary'.format(self.table))
             return False
         query = 'INSERT INTO {} ({}) VALUES ({})'.format(self.table, self.get_concat_keys_from_dict(values_dict), self.get_concat_values_from_dict(values_dict))
+        self.last_query = query
         with self.connection.cursor() as cursor:
             try:
                 cursor.execute(query)
@@ -63,8 +59,10 @@ class Model(MariaDB):
     def where(self, conditions, fields='*', limit=None):
         return self.select(fields, conditions, limit)
 
-    def find(self, value, fields='*'):
-        result = self.select(fields, "{}='{}'".format(self.primary_key, value))
+    def find(self, value, fields='*', conditions=None):
+        if conditions is not None:
+            conditions = "{}='{}' AND {}".format(self.primary_key, value, conditions)
+        result = self.select(fields, conditions, None)
         return result[0] if result else False
 
 #-------------------------------------------------------------------------------------------------------------------------
@@ -72,7 +70,7 @@ class Model(MariaDB):
     def get_concat_values_from_dict(self, values_dict):
         return_string = ''
         for column in self.fillable:
-            return_string += '`' + str(values_dict[column]) + '`' + ','
+            return_string += '"' + str(values_dict[column]) + '"' + ','
         return return_string[:-1]
 
     def get_concat_keys_from_dict(self, values_dict):
@@ -87,19 +85,23 @@ class Model(MariaDB):
                 return False
         return True
 
-    def parse_query_result(self, query_result):
-        return_object = []
-        for row in query_result:
-            _dict = {}
-            for field in self.fields:
-                _dict[field] = row[field]
-            return_object.append(_dict)
-        return return_object
+    # def parse_query_result(self, query_result):
+    #     return_object = []
+    #     die(query_result)
+    #     for key, value in query_result.items():
+    #         return_object.append({key: value})
+    #     # for row in query_result:
+    #     #     _dict = {}
+    #     #     for field in self.fields:
+    #     #         _dict[field] = row[field]
+    #     #     return_object.append(_dict)
+    #     return return_object
 
 #-------------------------------------------------------------------------------------------------------------------------
 
     def database_error(self, error):
         _print.danger('Database error!')
+        self.error_code = error.args[0]
         if env.DEBUG:
             curframe = inspect.currentframe()
             calframe = inspect.getouterframes(curframe, 2)

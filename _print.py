@@ -118,4 +118,4 @@ def info(text, bold=True, background=Color.BLUEBG, alert=True):
     colorize(text, Color.WHITE, bold, False, background, alert)
 
 def question(text):
-    return colorize(text, Color.VIOLET, False, False, Color.WHITEBG, False, '', raw=True) + ' '
+    return colorize(text, Color.WHITE, False, False, Color.GREENBG, False, '', raw=True) + ' '
