@@ -1,6 +1,7 @@
 from models import Player, Pokemon, PlayerPokemon
 from functions import die
 from numpy import random
+from threading import Thread
 import env
 
 class PlayerController:
@@ -9,6 +10,7 @@ class PlayerController:
         self.player = None
         self.login = None
         self.token = None
+        self.pokemons = None
 
     def create(self, login, password):
         from hashlib import sha512, sha256
@@ -36,17 +38,28 @@ class PlayerController:
         if result is not False:
             self.login = login
             self.token = result['token']
+            self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
         return True if result is not False else False
 
     def pokemons(self):
-        result = PlayerPokemon().where('player_login="{}"'.format(self.login))
-        print(result)
-        return result
+        result = self.pokemons
 
+    def add_pokemon(self, login, pokemon):
+        PlayerPokemon().create({'player_login': login, 'pokemon_name': pokemon, 'name': pokemon})
+        if pokemon['name'] == 'Egg':
+            egg = PlayerPokemon().first('pokemon_name="Egg" AND player_login="{}"'.format(self.login), order_by='created_at DESC')
+            listener = Thread(target=self.egg_listener, args=(egg,)).start()
+            self.add_egg_listener(egg)
+        self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
 
     @staticmethod
-    def add_pokemon(login, pokemon):
-        PlayerPokemon().create({'player_login': login, 'pokemon_name': pokemon, 'name': pokemon})
+    def egg_listener(egg):
+        from time import sleep
+        sleep(env.EGG_HATCH_TIME)
+        self.hatch_egg(egg)
+
+    def hatch_egg(self, egg):
+        pass
 
 
 class PokemonController:

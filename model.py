@@ -1,5 +1,5 @@
 from database import MariaDB
-from pymysql import connect, err
+from pymysql import err
 from functions import die
 import inspect
 import _print
@@ -16,10 +16,12 @@ class Model(MariaDB):
         self.error_code = None
         self.last_query = None
 
-    def select(self, fields='*', conditions=None, limit=None):
+    def select(self, fields='*', conditions=None, order_by=None, limit=None):
         query = 'SELECT {} FROM {}'.format(fields, self.table)
         if conditions is not None:
             query += ' WHERE {}'.format(conditions)
+        if order_by is not None:
+            query += ' ORDER BY {}'.format(order_by)
         if limit is not None:
             query += ' LIMIT {}'.format(limit)
         self.last_query = query
@@ -31,8 +33,8 @@ class Model(MariaDB):
             except err.MySQLError as error:
                 return self.database_error(error)
 
-    def update(self):
-        pass
+    def update(self, new_values, where, column_name=None):
+        query = 'UPDATE {} SET {} WHERE {}={}'.format(self.table, new_values)
 
     def create(self, values_dict):
         if not self.validate_fields(values_dict):
@@ -52,17 +54,18 @@ class Model(MariaDB):
     def delete(self):
         pass
 
-    def first(self, fields='*', conditions=None):
-        result =  self.select(fields, conditions, 1)
+    def first(self, fields='*', conditions=None, order_by=None):
+        result =  self.select(fields, conditions, order_by, 1)
         return result[0] if result else False
 
-    def where(self, conditions, fields='*', limit=None):
-        return self.select(fields, conditions, limit)
+    def where(self, conditions, fields='*', order_by=None, limit=None):
+        return self.select(fields, conditions, order_by, limit)
 
     def find(self, value, fields='*', conditions=None):
+        conditions = "{}='{}'".format(self.primary_key, value)
         if conditions is not None:
-            conditions = "{}='{}' AND {}".format(self.primary_key, value, conditions)
-        result = self.select(fields, conditions, None)
+            conditions += " AND {}".format(conditions)
+        result = self.select(fields, conditions)
         return result[0] if result else False
 
 #-------------------------------------------------------------------------------------------------------------------------

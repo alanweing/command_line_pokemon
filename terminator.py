@@ -70,7 +70,7 @@ class Terminator:
                 exit(0)
             pokemon = self.pokemon_controller.hunt()
         if len(self.player_controller.pokemons()) == 0:
-            PlayerController.add_pokemon(self.player.login, pokemon['name'])
+            self.player_controller.add_pokemon(self.player.login, pokemon['name'])
             _print.success("Congratulations! You've found your first Pokemon!")
             print('found:', pokemon)
         else:
