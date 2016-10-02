@@ -10,29 +10,32 @@ class Player(Model):
         self.token = None
 
     def create(self, login, password, token):
-        result = super().create({'login': login, 'password': password, 'token': token})
-        if result is not False:
-            self.login = login
-            self.token = token
-        return result
+        return super().create({'login': login, 'password': password, 'token': token})
 
     def authorize(self, login, password):
-        result = self.find(login, conditions="password='{}'".format(password), fields='token')
-        if result is not False:
-            self.login = login
-            self.token = result['token']
-        return result
+        return self.find(login, conditions="password='{}'".format(password), fields='token')
 
 
-class Pokemon:
 
-    def __init__(self, db_connection):
-        self.fields = ['name', 'rarity', 'evolves_from', 'type', 'combat_power']
-        self.db_connection = db_connection
+class Pokemon(Model):
+
+    def __init__(self):
+        super().__init__(table='pokemons', fields=['name', 'category', 'rarity', 'ability', 'evolves_from', 'hp', 'attack', 'defense', 'special_attack', 'special_deffense', 'speed'])
+        self.primary_key = 'name'
+        self.fillable = self.fields
+
+
+
+class PlayerPokemon(Model):
+
+    def __init__(self):
+        super().__init__(table='player_pokemon', fields=['id', 'player_login', 'pokemon_name', 'name', 'combat_power', 'created_at', 'updated_at'])
+        self.fillable = ['player_login', 'pokemon_name', 'name']
+
 
 
 class Type:
 
-    def __init__(self, db_connection):
+    def __init__(self):
         self.fields = ['name']
         self.db_connection = db_connection
