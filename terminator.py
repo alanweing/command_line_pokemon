@@ -1,5 +1,4 @@
 from _input import Input
-from threading import Thread
 from controllers import PlayerController, PokemonController
 from time import sleep
 from functions import die
@@ -24,16 +23,16 @@ class Terminator:
     def start(self):
         while self.online:
             if self.authorized is False:
-                _print.colorize('\t=>You can signin or signup in the system\n', _print.Color.RED)
-                self._input.get(_print.question('What do you want to do?'), 'string', ['signin', 'signup'])
-                if self._input.last_input == 'signin':
+                _print.colorize('\t=>You can login or register in the system\n', _print.Color.RED)
+                self._input.get(_print.question('What do you want to do?'), 'string', ['login', 'register'])
+                if self._input.last_input == 'login':
                     login = self._input.get('login:', 'string', None)
                     password = self._input.get('password:', 'mixed', None)
                     if self.player_controller.authorize(login, password):
                         self.authorize_player(self.player_controller)
                     else:
                         _print.warning('Wrong credentials!')
-                elif self._input.last_input == 'signup':
+                elif self._input.last_input == 'register':
                     login = self._input.get('login:', 'string', None)
                     password = self._input.get('password:', 'mixed', None)
                     self.player_controller.create(login, password)
@@ -59,7 +58,7 @@ class Terminator:
                         try:
                             if command[1] == 'list':
                                 self.show_pokemons()
-                            elif command[1] == 'order':
+                            elif command[1] == 'sort':
                                 self.player_controller.order_pokemons()
                             elif command[1] == 'rename':
                                 try:
@@ -67,9 +66,9 @@ class Terminator:
                                 except IndexError:
                                     _print.colorize('Usage: pokemon rename "pokemon name"', _print.Color.RED)
                             else:
-                                _print.colorize('Usage: pokemon list|order|rename', _print.Color.RED)
+                                _print.colorize('Usage: pokemon list|sort|rename', _print.Color.RED)
                         except IndexError:
-                            _print.colorize('Usage: pokemon list|order|rename', _print.Color.RED)
+                            _print.colorize('Usage: pokemon list|sort|rename', _print.Color.RED)
                 else:
                     _print.colorize('Unknown command "{}", type "help" for more info'.format(command[0]), _print.Color.RED)
 
@@ -87,6 +86,7 @@ class Terminator:
             print('Cathed at: {}'.format(pokemon['created_at'].strftime('%d/%m/%Y %H:%M:%S')))
             print('Rarity: {}'.format(Pokemon().find(pokemon['pokemon_name'])['rarity'].capitalize()))
             print('Name: {}'.format(pokemon['name']))
+            # ADD TYPE!
             print('***-***-***-***')
 
 
@@ -103,8 +103,8 @@ class Terminator:
             _print.success("Congratulations! You've found an egg! It'll hatch in {} seconds".format(env.EGG_HATCH_TIME))
             self.player_controller.add_pokemon(self.player_controller.login, pokemon['name'])
         elif len(self.player_controller.get_pokemons()) == 0:
-            self.player_controller.add_pokemon(self.player.login, pokemon['name'])
+            self.player_controller.add_pokemon(self.player_controller.login, pokemon['name'])
             _print.success("Congratulations! You've found your first Pokemon!")
-            print('found:', pokemon)
         else:
-            _print.danger('BATTLE, MOTHERFUCKER!')
+            _print.danger('BATTLE!')
+            # BATTLE SYSTEM

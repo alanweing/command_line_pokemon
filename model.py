@@ -1,6 +1,5 @@
 from database import MariaDB
 from pymysql import err
-from functions import die
 import inspect
 import _print
 import env

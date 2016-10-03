@@ -56,7 +56,7 @@ class PlayerController:
         if pokemon == 'Egg':
             egg = PlayerPokemon().first(conditions='pokemon_name="Egg" AND player_login="{}"'.format(self.login), order_by='created_at DESC')
             listener = Thread(target=self.egg_listener, args=(egg,)).start()
-        self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
+        self.refresh_pokemon_list()
 
     def egg_listener(self, egg):
         from time import sleep
@@ -68,7 +68,7 @@ class PlayerController:
         new_pokemon = new_pokemon[random.choice(len(new_pokemon), 1)[0]]
         PlayerPokemon().update('pokemon_name="{}"'.format(new_pokemon['name']), egg['id'])
         _print.success('One of your eggs hatched! New pokemon: {}'.format(new_pokemon['name']))
-        self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
+        self.refresh_pokemon_list()
 
     def rename_pokemon(self, pokemon_name):
         pokemon_entry = PlayerPokemon().where('player_login="{}" AND name="{}"'.format(self.login, pokemon_name))
@@ -81,18 +81,38 @@ class PlayerController:
             _print.colorize('You alredy have a pokemon named "{}"'.format(new_name.last_input), _print.Color.RED)
             new_name.get(_print.question('Choose a new name:'), 'string', None)
         PlayerPokemon().update('name="{}"'.format(new_name.last_input), pokemon_entry[0]['id'])
-        self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
+        self.refresh_pokemon_list()
 
     def check_pokemon_name(self, name):
         pokemon_entry = PlayerPokemon().where('player_login="{}" AND name="{}"'.format(self.login, name))
         return True if len(pokemon_entry) == 0 else False
 
-    def order_pokemons(self):
-        from functions import _sort
-        _print.colorize('You can order by: name, pokemon and rarity')
-        order_by = Input()
-        order_by.get('Order by:', 'string', ['name', 'pokemon', 'rarity'])
+    def refresh_pokemon_list(self):
+        self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
+        self.sort_pokemons('pokemon_name')
 
+    def order_pokemons(self):
+        _print.colorize('You can order by: name, pokemon, rarity and type', _print.Color.BLUE)
+        order_by = Input()
+        order_by = order_by.get('Order by:', 'string', ['name', 'pokemon', 'rarity', 'type'])
+        if order_by == 'name':
+            self.sort_pokemons(order_by)
+        elif order_by == 'pokemon':
+            self.sort_pokemons('pokemon_name')
+
+    def sort_pokemons(self, order_by):
+        from functions import _sort
+        names = []
+        for pokemon in self.pokemons:
+            names.append(pokemon[order_by])
+        names = _sort(names)
+        aux_list = self.pokemons
+        self.pokemons = []
+        for name in names:
+            for pokemon in aux_list:
+                if pokemon[order_by] == name:
+                    self.pokemons.append(pokemon)
+                    break
 
 
 class PokemonController:

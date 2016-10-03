@@ -5,7 +5,7 @@ def die(message=None):
         _print.warning(str(message))
     exit(0)
 
-def _sort(_list, sort_order='crescent', sort_method='selection_sort'):)
+def _sort(_list, sort_order='crescent', sort_method='selection_sort'):
     if sort_method == 'selection_sort':
         _list = selection_sort(_list)
     elif sort_method == 'insertion_sort':
