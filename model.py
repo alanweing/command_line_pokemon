@@ -33,8 +33,19 @@ class Model(MariaDB):
             except err.MySQLError as error:
                 return self.database_error(error)
 
-    def update(self, new_values, where, column_name=None):
-        query = 'UPDATE {} SET {} WHERE {}={}'.format(self.table, new_values)
+    def update(self, new_values, column_value, column_to_search=None):
+        if column_to_search is None:
+            query = 'UPDATE {} SET {} WHERE {}={}'.format(self.table, new_values, self.primary_key, column_value)
+        else:
+            query = query = 'UPDATE {} SET {} WHERE {}={}'.format(self.table, new_values, column_to_search, column_value)
+        with self.connection.cursor() as cursor:
+            try:
+                cursor.execute(query)
+                self.connection.commit()
+                return True
+            except err.MySQLError as error:
+                self.connection.rollback()
+                return self.database_error(error)
 
     def create(self, values_dict):
         if not self.validate_fields(values_dict):
@@ -62,10 +73,10 @@ class Model(MariaDB):
         return self.select(fields, conditions, order_by, limit)
 
     def find(self, value, fields='*', conditions=None):
-        conditions = "{}='{}'".format(self.primary_key, value)
+        final_condition = "{}='{}'".format(self.primary_key, value)
         if conditions is not None:
-            conditions += " AND {}".format(conditions)
-        result = self.select(fields, conditions)
+            final_condition += " AND {}".format(conditions)
+        result = self.select(fields, final_condition)
         return result[0] if result else False
 
 #-------------------------------------------------------------------------------------------------------------------------

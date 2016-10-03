@@ -2,6 +2,8 @@ from models import Player, Pokemon, PlayerPokemon
 from functions import die
 from numpy import random
 from threading import Thread
+from _input import Input
+import _print
 import env
 
 class PlayerController:
@@ -41,25 +43,56 @@ class PlayerController:
             self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
         return True if result is not False else False
 
-    def pokemons(self):
-        result = self.pokemons
+    def get_pokemons(self):
+        return self.pokemons
 
     def add_pokemon(self, login, pokemon):
+        double_name = PlayerPokemon().where('player_login="{}" AND name="{}"'.format(self.login, pokemon))
+        if len(double_name) != 0:
+            _print.info("You can't have two pokemons with the same name!")
+            print('You need to give {} ({}) a new name'.format(double_name[0]['name'], double_name[0]['pokemon_name']))
+            self.rename_pokemon(double_name[0]['name'])
         PlayerPokemon().create({'player_login': login, 'pokemon_name': pokemon, 'name': pokemon})
-        if pokemon['name'] == 'Egg':
-            egg = PlayerPokemon().first('pokemon_name="Egg" AND player_login="{}"'.format(self.login), order_by='created_at DESC')
+        if pokemon == 'Egg':
+            egg = PlayerPokemon().first(conditions='pokemon_name="Egg" AND player_login="{}"'.format(self.login), order_by='created_at DESC')
             listener = Thread(target=self.egg_listener, args=(egg,)).start()
-            self.add_egg_listener(egg)
         self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
 
-    @staticmethod
-    def egg_listener(egg):
+    def egg_listener(self, egg):
         from time import sleep
         sleep(env.EGG_HATCH_TIME)
         self.hatch_egg(egg)
 
     def hatch_egg(self, egg):
-        pass
+        new_pokemon = Pokemon().where('rarity="very common"')
+        new_pokemon = new_pokemon[random.choice(len(new_pokemon), 1)[0]]
+        PlayerPokemon().update('pokemon_name="{}"'.format(new_pokemon['name']), egg['id'])
+        _print.success('One of your eggs hatched! New pokemon: {}'.format(new_pokemon['name']))
+        self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
+
+    def rename_pokemon(self, pokemon_name):
+        pokemon_entry = PlayerPokemon().where('player_login="{}" AND name="{}"'.format(self.login, pokemon_name))
+        if len(pokemon_entry) == 0:
+            _print.warning('You have no pokemon called "{}"'.format(pokemon_name))
+            return
+        new_name = Input()
+        new_name.get(_print.question('Choose a new name:'), 'string', None)
+        while not self.check_pokemon_name(new_name.last_input):
+            _print.colorize('You alredy have a pokemon named "{}"'.format(new_name.last_input), _print.Color.RED)
+            new_name.get(_print.question('Choose a new name:'), 'string', None)
+        PlayerPokemon().update('name="{}"'.format(new_name.last_input), pokemon_entry[0]['id'])
+        self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
+
+    def check_pokemon_name(self, name):
+        pokemon_entry = PlayerPokemon().where('player_login="{}" AND name="{}"'.format(self.login, name))
+        return True if len(pokemon_entry) == 0 else False
+
+    def order_pokemons(self):
+        from functions import _sort
+        _print.colorize('You can order by: name, pokemon and rarity')
+        order_by = Input()
+        order_by.get('Order by:', 'string', ['name', 'pokemon', 'rarity'])
+
 
 
 class PokemonController:
