@@ -25,6 +25,13 @@ class Pokemon(Model):
         self.fillable = self.fields
 
 
+class PokemonType(Model):
+
+    def __init__(self):
+        super().__init__(table='pokemon_type', fields=['pokemon_name', 'pokemon_type'])
+        self.primary_key = 'pokemon_name'
+        self.fillable = ['pokemon_name', 'pokemon_type']
+
 
 class PlayerPokemon(Model):
 
@@ -33,9 +40,9 @@ class PlayerPokemon(Model):
         self.fillable = ['player_login', 'pokemon_name', 'name']
 
 
-
-class Type:
+class Type(Model):
 
     def __init__(self):
-        self.fields = ['name']
-        self.db_connection = db_connection
+        super().__init__(table='type', fields=['name'])
+        self.primary_key = 'name'
+        self.fillable = ['name']

@@ -57,7 +57,7 @@ class Terminator:
                     elif command[0] == 'pokemon':
                         try:
                             if command[1] == 'list':
-                                self.show_pokemons()
+                                self.player_controller.list_pokemons()
                             elif command[1] == 'sort':
                                 self.player_controller.order_pokemons()
                             elif command[1] == 'rename':
@@ -76,18 +76,6 @@ class Terminator:
         self.authorized = True
         self.line_input = '<{}>:'.format(player.login)
         _print.success('You are now logged in!')
-
-    def show_pokemons(self):
-        from models import Pokemon
-        pokemons = self.player_controller.pokemons
-        for pokemon in pokemons:
-            print('***-***-***-***')
-            print('Pokemon: {}'.format(pokemon['pokemon_name']))
-            print('Cathed at: {}'.format(pokemon['created_at'].strftime('%d/%m/%Y %H:%M:%S')))
-            print('Rarity: {}'.format(Pokemon().find(pokemon['pokemon_name'])['rarity'].capitalize()))
-            print('Name: {}'.format(pokemon['name']))
-            # ADD TYPE!
-            print('***-***-***-***')
 
 
     def hunt(self):

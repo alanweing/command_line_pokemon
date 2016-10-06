@@ -1,4 +1,4 @@
-from models import Player, Pokemon, PlayerPokemon
+from models import Player, Pokemon, PlayerPokemon, PokemonType
 from functions import die
 from numpy import random
 from threading import Thread
@@ -41,6 +41,7 @@ class PlayerController:
             self.login = login
             self.token = result['token']
             self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
+            self.extend_pokemon_info()
         return True if result is not False else False
 
     def get_pokemons(self):
@@ -89,30 +90,52 @@ class PlayerController:
 
     def refresh_pokemon_list(self):
         self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
+        self.extend_pokemon_info()
         self.sort_pokemons('pokemon_name')
 
     def order_pokemons(self):
         _print.colorize('You can order by: name, pokemon, rarity and type', _print.Color.BLUE)
         order_by = Input()
         order_by = order_by.get('Order by:', 'string', ['name', 'pokemon', 'rarity', 'type'])
-        if order_by == 'name':
-            self.sort_pokemons(order_by)
-        elif order_by == 'pokemon':
+        if order_by == 'pokemon':
             self.sort_pokemons('pokemon_name')
+        else:
+            self.sort_pokemons(order_by)
 
-    def sort_pokemons(self, order_by):
-        from functions import _sort
-        names = []
+    def sort_pokemons(self, order_by, vio=False):
+        if not vio:
+            from functions import _sort
+            names = []
+            for pokemon in self.pokemons:
+                names.append(pokemon[order_by])
+            names = _sort(names)
+            print(names)
+            aux_list = self.pokemons
+            self.pokemons = []
+            i = 0
+            for name in names:
+                for pokemon in aux_list:
+                    if pokemon[order_by] == name:
+                        self.pokemons.append(pokemon)
+                        break
+                del(aux_list[i])
+                i += 1
+
+    def extend_pokemon_info(self):
         for pokemon in self.pokemons:
-            names.append(pokemon[order_by])
-        names = _sort(names)
-        aux_list = self.pokemons
-        self.pokemons = []
-        for name in names:
-            for pokemon in aux_list:
-                if pokemon[order_by] == name:
-                    self.pokemons.append(pokemon)
-                    break
+            pokemon['rarity'] = Pokemon().find(pokemon['pokemon_name'])['rarity']
+            pokemon['type'] = PokemonType().first(conditions='pokemon_name="{}"'.format(pokemon['pokemon_name']))['type_name']
+
+    def list_pokemons(self):
+        for pokemon in self.pokemons:
+            print('***-***-***-***')
+            print('Pokemon: {}'.format(pokemon['pokemon_name']))
+            print('Cathed at: {}'.format(pokemon['created_at'].strftime('%d/%m/%Y %H:%M:%S')))
+            print('Rarity: {}'.format(pokemon['rarity'].capitalize()))
+            print('Name: {}'.format(pokemon['name']))
+            print('Type: {}'.format(pokemon['type']))
+            # ADD TYPE!
+            print('***-***-***-***')
 
 
 class PokemonController:
