@@ -12,7 +12,7 @@ class PlayerController:
         self.player = None
         self.login = None
         self.token = None
-        self.pokemons = None
+        self.pokemons = []
 
     def create(self, login, password):
         from hashlib import sha512, sha256
@@ -99,27 +99,38 @@ class PlayerController:
         order_by = order_by.get('Order by:', 'string', ['name', 'pokemon', 'rarity', 'type'])
         if order_by == 'pokemon':
             self.sort_pokemons('pokemon_name')
+        elif order_by == 'type' or order_by == 'rarity':
+            print(self.sort_pokemons('type', vio=True))
+            exit(0)
         else:
             self.sort_pokemons(order_by)
 
     def sort_pokemons(self, order_by, vio=False):
+        from functions import _sort
+        names = []
+        for pokemon in self.pokemons:
+            names.append(pokemon[order_by])
+        names = _sort(names)
+        aux_list = self.pokemons
+        i = 0
         if not vio:
-            from functions import _sort
-            names = []
-            for pokemon in self.pokemons:
-                names.append(pokemon[order_by])
-            names = _sort(names)
-            print(names)
-            aux_list = self.pokemons
             self.pokemons = []
-            i = 0
-            for name in names:
-                for pokemon in aux_list:
-                    if pokemon[order_by] == name:
+        else:
+            list_index = []
+        for name in names:
+            for pokemon in aux_list:
+                if pokemon[order_by] == name:
+                    if not vio:
                         self.pokemons.append(pokemon)
-                        break
-                del(aux_list[i])
+                    else:
+                        list_index.append(i)
+                    print(pokemon[order_by])
+                    del(aux_list[i])
                 i += 1
+            i = 0
+        if vio:
+            return list_index
+
 
     def extend_pokemon_info(self):
         for pokemon in self.pokemons:

@@ -36,6 +36,21 @@ def selection_sort(_list):
         _list[_min['pos']] = aux
     return _list
 
+def get_vio(_list):
+    index_list = []
+    for i in range(0, len(_list)):
+        _min = {
+            'pos': i,
+            'value': _list[i]
+        }
+        for j in range(0, len(_list)):
+            if _list[j] < _min['value'] and j not in index_list:
+                _min = {
+                    'pos': j,
+                    'value': _list[j]
+                }
+        index_list.append(_min['pos'])
+    return index_list
 
 def insertion_sort(_list):
     for i in range(0, len(_list)):
