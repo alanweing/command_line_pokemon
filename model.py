@@ -15,6 +15,7 @@ class Model(MariaDB):
         self.error_code = None
         self.last_query = None
 
+
     def select(self, fields='*', conditions=None, order_by=None, limit=None):
         query = 'SELECT {} FROM {}'.format(fields, self.table)
         if conditions is not None:
@@ -27,10 +28,10 @@ class Model(MariaDB):
         with self.connection.cursor() as cursor:
             try:
                 cursor.execute(query)
-                # return self.parse_query_result(cursor.fetchall())
                 return cursor.fetchall()
             except err.MySQLError as error:
                 return self.database_error(error)
+
 
     def update(self, new_values, column_value, column_to_search=None):
         if column_to_search is None:
@@ -45,6 +46,7 @@ class Model(MariaDB):
             except err.MySQLError as error:
                 self.connection.rollback()
                 return self.database_error(error)
+
 
     def create(self, values_dict):
         if not self.validate_fields(values_dict):
@@ -61,8 +63,18 @@ class Model(MariaDB):
                 self.connection.rollback()
                 return self.database_error(error)
 
-    def delete(self):
-        pass
+
+    def delete(self, conditions):
+        query = 'DELETE FROM {} WHERE {}'.format(self.table, conditions)
+        with self.connection.cursor() as cursor:
+            try:
+                cursor.execute(query)
+                self.connection.commit()
+                return True
+            except err.MySQLError as error:
+                self.connection.rollback()
+                return self.database_error(error)
+
 
     def first(self, fields='*', conditions=None, order_by=None):
         result =  self.select(fields, conditions, order_by, 1)
@@ -86,29 +98,19 @@ class Model(MariaDB):
             return_string += '"' + str(values_dict[column]) + '"' + ','
         return return_string[:-1]
 
+
     def get_concat_keys_from_dict(self, values_dict):
         return_string = ''
         for column in self.fillable:
             return_string += column + ','
         return return_string[:-1]
 
+
     def validate_fields(self, fields):
         for required_field in self.fillable:
             if required_field not in fields:
                 return False
         return True
-
-    # def parse_query_result(self, query_result):
-    #     return_object = []
-    #     die(query_result)
-    #     for key, value in query_result.items():
-    #         return_object.append({key: value})
-    #     # for row in query_result:
-    #     #     _dict = {}
-    #     #     for field in self.fields:
-    #     #         _dict[field] = row[field]
-    #     #     return_object.append(_dict)
-    #     return return_object
 
 #-------------------------------------------------------------------------------------------------------------------------
 

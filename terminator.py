@@ -8,7 +8,7 @@ import env
 
 class Terminator:
 
-    available_commands = ['help', 'hunt', 'pokemon', 'exit']
+    available_commands = ['help', 'hunt', 'pokemon', 'exit', 'god_mode']
 
     def __init__(self):
         self._input = Input()
@@ -59,9 +59,14 @@ class Terminator:
                             if command[1] == 'list':
                                 self.player_controller.list_pokemons()
                             elif command[1] == 'sort':
-                                self.player_controller.order_pokemons()
+                                try:
+                                    self.player_controller.order_pokemons(command[2])
+                                except IndexError:
+                                    _print.colorize('Usage: pokemon sort name|pokemon|type|rarity\nname and pokemon name are physically sorted\ntype and rarity are indirect arrays', _print.Color.RED)
                             elif command[1] == 'rename':
                                 try:
+                                    if command[2] == '':
+                                        _print.colorize('Usage: pokemon rename "pokemon name"', _print.Color.RED)
                                     self.player_controller.rename_pokemon(' '.join(command[2:]))
                                 except IndexError:
                                     _print.colorize('Usage: pokemon rename "pokemon name"', _print.Color.RED)
@@ -69,6 +74,8 @@ class Terminator:
                                 _print.colorize('Usage: pokemon list|sort|rename', _print.Color.RED)
                         except IndexError:
                             _print.colorize('Usage: pokemon list|sort|rename', _print.Color.RED)
+                    elif command[0] == 'god_mode':
+                        self.player_controller.god_mode()
                 else:
                     _print.colorize('Unknown command "{}", type "help" for more info'.format(command[0]), _print.Color.RED)
 
@@ -89,9 +96,9 @@ class Terminator:
             pokemon = self.pokemon_controller.hunt()
         if pokemon['name'] == 'Egg':
             _print.success("Congratulations! You've found an egg! It'll hatch in {} seconds".format(env.EGG_HATCH_TIME))
-            self.player_controller.add_pokemon(self.player_controller.login, pokemon['name'])
+            self.player_controller.add_pokemon(pokemon['name'])
         elif len(self.player_controller.get_pokemons()) == 0:
-            self.player_controller.add_pokemon(self.player_controller.login, pokemon['name'])
+            self.player_controller.add_pokemon(pokemon['name'])
             _print.success("Congratulations! You've found your first Pokemon!")
         else:
             _print.danger('BATTLE!')

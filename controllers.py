@@ -1,5 +1,5 @@
 from models import Player, Pokemon, PlayerPokemon, PokemonType
-from functions import die
+from functions import die, get_vio, _sort
 from numpy import random
 from threading import Thread
 from _input import Input
@@ -47,13 +47,13 @@ class PlayerController:
     def get_pokemons(self):
         return self.pokemons
 
-    def add_pokemon(self, login, pokemon):
+    def add_pokemon(self, pokemon):
         double_name = PlayerPokemon().where('player_login="{}" AND name="{}"'.format(self.login, pokemon))
         if len(double_name) != 0:
             _print.info("You can't have two pokemons with the same name!")
             print('You need to give {} ({}) a new name'.format(double_name[0]['name'], double_name[0]['pokemon_name']))
             self.rename_pokemon(double_name[0]['name'])
-        PlayerPokemon().create({'player_login': login, 'pokemon_name': pokemon, 'name': pokemon})
+        PlayerPokemon().create({'player_login': self.login, 'pokemon_name': pokemon, 'name': pokemon})
         if pokemon == 'Egg':
             egg = PlayerPokemon().first(conditions='pokemon_name="Egg" AND player_login="{}"'.format(self.login), order_by='created_at DESC')
             listener = Thread(target=self.egg_listener, args=(egg,)).start()
@@ -93,43 +93,58 @@ class PlayerController:
         self.extend_pokemon_info()
         self.sort_pokemons('pokemon_name')
 
-    def order_pokemons(self):
-        _print.colorize('You can order by: name, pokemon, rarity and type', _print.Color.BLUE)
-        order_by = Input()
-        order_by = order_by.get('Order by:', 'string', ['name', 'pokemon', 'rarity', 'type'])
+    def order_pokemons(self, order_by):
         if order_by == 'pokemon':
             self.sort_pokemons('pokemon_name')
-        elif order_by == 'type' or order_by == 'rarity':
-            print(self.sort_pokemons('type', vio=True))
-            exit(0)
-        else:
+        elif order_by == 'name':
             self.sort_pokemons(order_by)
+        elif order_by == 'type' or order_by == 'rarity':
+            vio = self.generate_vio(order_by)
+            for index in vio:
+                temp = self.pokemons[index]
+                print('***-***-***-***')
+                print('Pokemon: {}'.format(temp['pokemon_name']))
+                print('Cathed at: {}'.format(temp['created_at'].strftime('%d/%m/%Y %H:%M:%S')))
+                print('Rarity: {}'.format(temp['rarity'].capitalize()))
+                print('Name: {}'.format(temp['name']))
+                print('Type: {}'.format(temp['type']))
+                print('***-***-***-***')
+        else:
+            _print.colorize('Usage: pokemon sort name|pokemon|type|rarity\nname and pokemon name are physically sorted\ntype and rarity are indirect arrays', _print.Color.RED)
 
-    def sort_pokemons(self, order_by, vio=False):
-        from functions import _sort
+    def generate_vio(self, order_by):
+        indexes = []
+        names = []
+        for pokemon in self.pokemons:
+            names.append(pokemon[order_by])
+        _sort(names)
+        aux_list = []
+        aux_list.extend(self.pokemons)
+        i = 0
+        temp = []
+        for name in names:
+            for pokemon in aux_list:
+                if pokemon[order_by] == name and pokemon not in temp:
+                    indexes.append(i)
+                    temp.append(pokemon)
+                i += 1
+            i = 0
+        return indexes
+
+    def sort_pokemons(self, order_by):
         names = []
         for pokemon in self.pokemons:
             names.append(pokemon[order_by])
         names = _sort(names)
         aux_list = self.pokemons
         i = 0
-        if not vio:
-            self.pokemons = []
-        else:
-            list_index = []
         for name in names:
             for pokemon in aux_list:
                 if pokemon[order_by] == name:
-                    if not vio:
-                        self.pokemons.append(pokemon)
-                    else:
-                        list_index.append(i)
-                    print(pokemon[order_by])
+                    self.pokemons.append(pokemon)
                     del(aux_list[i])
                 i += 1
             i = 0
-        if vio:
-            return list_index
 
 
     def extend_pokemon_info(self):
@@ -145,8 +160,16 @@ class PlayerController:
             print('Rarity: {}'.format(pokemon['rarity'].capitalize()))
             print('Name: {}'.format(pokemon['name']))
             print('Type: {}'.format(pokemon['type']))
-            # ADD TYPE!
             print('***-***-***-***')
+
+    def god_mode(self):
+        opt = Input()
+        opt.get(_print.question('This will override all your pokemons! Continue?'), 'string', ['yes', 'y', 'n', 'no'])
+        if opt.last_input == 'yes' or opt.last_input == 'y':
+            PlayerPokemon().delete('player_login="{}"'.format(self.login))
+            for pokemon in Pokemon().select():
+                self.add_pokemon(pokemon['name'])
+            _print.success('Bazinga!')
 
 
 class PokemonController:

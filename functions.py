@@ -95,36 +95,14 @@ def quick_sort(_list):
         return _list
 
 
-# def get_vio(_list):
-#     vio = []
-#     for i in range(0, len(_list)):
-#         if len(vio) != 0:
-#             _min = {'pos': vio[-1], 'value': _list[vio[-1]]}
-#         else:
-#             _min = {'pos': 0, 'value': _list[0]}
-#         jump = _min['pos']
-#         for j in range(0, len(_list)):
-#             if j not in vio:
-#                 if len(vio) != 0 and _list[j] > _list[vio[-1]]:
-#                     if
-#                     _min = {'pos': j, 'value': _list[j]}
-#                 elif len(vio) == 0 and _list[j] < _min['value']:
-#                     _min = {'pos': j, 'value': _list[j]}
-#         print(_min)
-#         vio.append(_min['pos'])
-#     return vio
-
 def get_vio(_list):
     vio = []
-    for i in range(0, len(_list)):
-        _min = {'pos': 0, 'value': _list[0]}
-        for j in range(0, len(_list)):
-            if j not in vio:
-                if (len(vio) == 0 and _list[j] < _min['value']) or \
-                        (len(vio) != 0 and _list[j] > _list[vio[-1]] and
-                            _list[j] < _min['value']):
-                    _min = {'pos': j, 'value': _list[j]}
-                    # print('min:', _min, '\nvio:', vio)
-        print(_min)
-        vio.append(_min['pos'])
+    ordered_list = []
+    ordered_list.extend(_list)
+    selection_sort(ordered_list)
+    for element in ordered_list:
+        for i in range(0, len(_list)):
+            if _list[i] == element:
+                vio.append(i)
+                break
     return vio
