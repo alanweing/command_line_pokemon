@@ -1,10 +1,11 @@
 from models import Player, Pokemon, PlayerPokemon, PokemonType
-from functions import die, get_vio, _sort
+from functions import _sort
 from numpy import random
 from threading import Thread
 from _input import Input
 import _print
 import env
+
 
 class PlayerController:
 
@@ -40,7 +41,8 @@ class PlayerController:
         if result is not False:
             self.login = login
             self.token = result['token']
-            self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
+            self.pokemons = PlayerPokemon().where('player_login="{}"'
+                                                  .format(self.login))
             self.extend_pokemon_info()
         return True if result is not False else False
 
@@ -48,15 +50,22 @@ class PlayerController:
         return self.pokemons
 
     def add_pokemon(self, pokemon):
-        double_name = PlayerPokemon().where('player_login="{}" AND name="{}"'.format(self.login, pokemon))
+        double_name = PlayerPokemon().where('player_login="{}" AND name="{}"'
+                                            .format(self.login, pokemon))
         if len(double_name) != 0:
             _print.info("You can't have two pokemons with the same name!")
-            print('You need to give {} ({}) a new name'.format(double_name[0]['name'], double_name[0]['pokemon_name']))
+            print('You need to give {} ({}) a new name'
+                  .format(double_name[0]['name'],
+                          double_name[0]['pokemon_name']))
             self.rename_pokemon(double_name[0]['name'])
-        PlayerPokemon().create({'player_login': self.login, 'pokemon_name': pokemon, 'name': pokemon})
+        PlayerPokemon().create({'player_login': self.login,
+                               'pokemon_name': pokemon, 'name': pokemon})
         if pokemon == 'Egg':
-            egg = PlayerPokemon().first(conditions='pokemon_name="Egg" AND player_login="{}"'.format(self.login), order_by='created_at DESC')
-            listener = Thread(target=self.egg_listener, args=(egg,)).start()
+            egg = PlayerPokemon().first(conditions='pokemon_name="Egg" AND \
+                                        player_login="{}"'
+                                        .format(self.login),
+                                        order_by='created_at DESC')
+            Thread(target=self.egg_listener, args=(egg,)).start()
         self.refresh_pokemon_list()
 
     def egg_listener(self, egg):
@@ -67,29 +76,38 @@ class PlayerController:
     def hatch_egg(self, egg):
         new_pokemon = Pokemon().where('rarity="very common"')
         new_pokemon = new_pokemon[random.choice(len(new_pokemon), 1)[0]]
-        PlayerPokemon().update('pokemon_name="{}"'.format(new_pokemon['name']), egg['id'])
-        _print.success('One of your eggs hatched! New pokemon: {}'.format(new_pokemon['name']))
+        PlayerPokemon().update('pokemon_name="{}"'
+                               .format(new_pokemon['name']), egg['id'])
+        _print.success('One of your eggs hatched! New pokemon: {}'
+                       .format(new_pokemon['name']))
         self.refresh_pokemon_list()
 
     def rename_pokemon(self, pokemon_name):
-        pokemon_entry = PlayerPokemon().where('player_login="{}" AND name="{}"'.format(self.login, pokemon_name))
+        pokemon_entry = PlayerPokemon().where('player_login="{}" AND name="{}"'
+                                              .format(self.login,
+                                                      pokemon_name))
         if len(pokemon_entry) == 0:
-            _print.warning('You have no pokemon called "{}"'.format(pokemon_name))
+            _print.warning('You have no pokemon called "{}"'
+                           .format(pokemon_name))
             return
         new_name = Input()
         new_name.get(_print.question('Choose a new name:'), 'string', None)
         while not self.check_pokemon_name(new_name.last_input):
-            _print.colorize('You alredy have a pokemon named "{}"'.format(new_name.last_input), _print.Color.RED)
+            _print.colorize('You alredy have a pokemon named "{}"'
+                            .format(new_name.last_input), _print.Color.RED)
             new_name.get(_print.question('Choose a new name:'), 'string', None)
-        PlayerPokemon().update('name="{}"'.format(new_name.last_input), pokemon_entry[0]['id'])
+        PlayerPokemon().update('name="{}"'.format(new_name.last_input),
+                               pokemon_entry[0]['id'])
         self.refresh_pokemon_list()
 
     def check_pokemon_name(self, name):
-        pokemon_entry = PlayerPokemon().where('player_login="{}" AND name="{}"'.format(self.login, name))
+        pokemon_entry = PlayerPokemon().where('player_login="{}" AND name="{}"'
+                                              .format(self.login, name))
         return True if len(pokemon_entry) == 0 else False
 
     def refresh_pokemon_list(self):
-        self.pokemons = PlayerPokemon().where('player_login="{}"'.format(self.login))
+        self.pokemons = PlayerPokemon().where('player_login="{}"'
+                                              .format(self.login))
         self.extend_pokemon_info()
         self.sort_pokemons('pokemon_name')
 
@@ -104,13 +122,17 @@ class PlayerController:
                 temp = self.pokemons[index]
                 print('***-***-***-***')
                 print('Pokemon: {}'.format(temp['pokemon_name']))
-                print('Cathed at: {}'.format(temp['created_at'].strftime('%d/%m/%Y %H:%M:%S')))
+                print('Cathed at: {}'.format(temp['created_at']
+                      .strftime('%d/%m/%Y %H:%M:%S')))
                 print('Rarity: {}'.format(temp['rarity'].capitalize()))
                 print('Name: {}'.format(temp['name']))
                 print('Type: {}'.format(temp['type']))
                 print('***-***-***-***')
         else:
-            _print.colorize('Usage: pokemon sort name|pokemon|type|rarity\nname and pokemon name are physically sorted\ntype and rarity are indirect arrays', _print.Color.RED)
+            _print.colorize('Usage: pokemon sort name|pokemon|type|rarity\n\
+                            name and pokemon name are physically sorted\n\
+                            type and rarity are indirect arrays',
+                            _print.Color.RED)
 
     def generate_vio(self, order_by):
         indexes = []
@@ -146,17 +168,25 @@ class PlayerController:
                 i += 1
             i = 0
 
-
     def extend_pokemon_info(self):
         for pokemon in self.pokemons:
-            pokemon['rarity'] = Pokemon().find(pokemon['pokemon_name'])['rarity']
-            pokemon['type'] = PokemonType().first(conditions='pokemon_name="{}"'.format(pokemon['pokemon_name']))['type_name']
+            poke_temp = Pokemon().find(pokemon['pokemon_name'])
+            pokemon['rarity'] = poke_temp['rarity']
+            _type = PokemonType().first(conditions='pokemon_name="{}"'
+                                        .format(pokemon['pokemon_name']))
+            up = poke_temp
+            while not _type:
+                up = Pokemon().find(up['evolves_from'])
+                _type = PokemonType().first(conditions='pokemon_name="{}"'
+                                            .format(up['name']))
+            pokemon['type'] = _type['type_name']
 
     def list_pokemons(self):
         for pokemon in self.pokemons:
             print('***-***-***-***')
             print('Pokemon: {}'.format(pokemon['pokemon_name']))
-            print('Cathed at: {}'.format(pokemon['created_at'].strftime('%d/%m/%Y %H:%M:%S')))
+            print('Cathed at: {}'.format(pokemon['created_at']
+                                         .strftime('%d/%m/%Y %H:%M:%S')))
             print('Rarity: {}'.format(pokemon['rarity'].capitalize()))
             print('Name: {}'.format(pokemon['name']))
             print('Type: {}'.format(pokemon['type']))
@@ -164,10 +194,13 @@ class PlayerController:
 
     def god_mode(self):
         opt = Input()
-        opt.get(_print.question('This will override all your pokemons! Continue?'), 'string', ['yes', 'y', 'n', 'no'])
+        opt.get(_print.question('This will override all your pokemons! \
+Continue?'), 'string', ['yes', 'y', 'n', 'no'])
         if opt.last_input == 'yes' or opt.last_input == 'y':
             PlayerPokemon().delete('player_login="{}"'.format(self.login))
             for pokemon in Pokemon().select():
+                if pokemon['name'] == 'Egg':
+                    continue
                 self.add_pokemon(pokemon['name'])
             _print.success('Bazinga!')
 
@@ -203,12 +236,14 @@ class PokemonController:
 
     @staticmethod
     def hunt():
-        pokemon_rarity = random.choice(PokemonController.rarity, 1, p=PokemonController.probability)
+        pokemon_rarity = random.choice(PokemonController.rarity, 1,
+                                       p=PokemonController.probability)
         if pokemon_rarity[0] is not None:
             if pokemon_rarity[0] == 'egg':
                 return Pokemon().find('Egg')
             pokemon_model = Pokemon()
-            pokemon = pokemon_model.where('rarity="{}"'.format(pokemon_rarity[0]))
+            pokemon = pokemon_model.where('rarity="{}"'
+                                          .format(pokemon_rarity[0]))
             if len(pokemon) == 0:
                 return
             return pokemon[random.choice(len(pokemon), 1)[0]]
