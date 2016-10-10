@@ -82,7 +82,8 @@ class PlayerController:
                                         .format(self.login),
                                         order_by='created_at DESC')
             Thread(target=self.egg_listener, args=(egg,)).start()
-        self.refresh_pokemon_list()
+        else:
+            self.refresh_pokemon_list()
 
     # a Thread 'dorme' pelo tempo em que o ovo está esperando para chocar
     def egg_listener(self, egg):

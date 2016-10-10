@@ -131,12 +131,19 @@ more info'.format(command[0]), _print.Color.RED)
                 exit(0)
             pokemon = self.pokemon_controller.hunt()
         if pokemon['name'] == 'Egg':
-            _print.success("Congratulations! You've found an egg! It'll hatch \
+            _print.success("You've found an egg! It'll hatch \
 in {} seconds".format(env.EGG_HATCH_TIME))
             self.player_controller.add_pokemon(pokemon['name'])
         elif len(self.player_controller.get_pokemons()) == 0:
             self.player_controller.add_pokemon(pokemon['name'])
-            _print.success("Congratulations! You've found your first Pokemon!")
+            _print.success("You've found your first Pokemon!")
         else:
-            _print.danger('BATTLE!')
+            _print.danger('Battle system not implemented!')
+            _print.colorize("You've found:\n", _print.Color.GREEN, underline=True)
+            for key, value in pokemon.items():
+                print('\t{}: {}'.format(str(key).upper(), value))
+            print('\n')
+            opt = self._input.get('Do you want to collect this pokemon?', 'string', ['yes', 'y', 'no', 'n'])
+            if opt == 'yes' or opt == 'y':
+                self.player_controller.add_pokemon(pokemon['name'])
             # BATTLE SYSTEM
