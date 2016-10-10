@@ -60,3 +60,14 @@ class Type(Model):
         super().__init__(table='type', fields=['name'])
         self.primary_key = 'name'
         self.fillable = ['name']
+
+
+class Weakness(Model):
+
+    def __init__(self):
+        super().__init__(table='type_damage', fields=['attacking_type',
+                                                      'defending_type',
+                                                      'damage_multiplier'])
+        self.primary_key = 'attacking_type'
+        self.fillable = ['attacking_type', 'defending_type',
+                         'damage_multiplier'])

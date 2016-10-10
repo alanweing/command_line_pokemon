@@ -1,4 +1,4 @@
-from models import Player, Pokemon, PlayerPokemon, PokemonType
+from models import Player, Pokemon, PlayerPokemon, PokemonType, Weakness
 from functions import _sort
 from numpy import random
 from threading import Thread
@@ -259,3 +259,30 @@ class PokemonController:
             env.SPAWN_RATIO_RARITY_EPIC + \
             env.SPAWN_RATIO_RARITY_LEGENDARY +\
             env.SPAWN_RATIO_EGG
+
+
+class Battle:
+
+    def __init__(self, player_pokemon, wild_pokemon):
+        self.player_pokemon = Pokemon().find(player_pokemon['pokemon_name'])
+        self.wild_pokemon = wild_pokemon
+        get_pokemon_info(self.player_pokemon)
+        get_pokemon_info(self.wild_pokemon)
+        self.battling = True
+        self.round = 0
+
+    @staticmethod
+    def get_pokemon_info(pokemon):
+        _type = PokemonType().first(conditions='pokemon_name="{}"'
+                                               .format(pokemon['name']))
+        up = pokemon
+        while not _type:
+            up = Pokemon().find(up['evolves_from'])
+            _type = PokemonType().first(conditions='pokemon_name="{}"'
+                                                   .format(up['name']))
+        pokemon['type'] = _type['type_name']
+        pokemon['damage'] = Weakness().where('attacking_type="0" OR \
+defending_type="{0}"'.format(_type['type_name']))
+
+    def start(self):
+        while self.battling
