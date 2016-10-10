@@ -1,3 +1,4 @@
+# classe que contém todas as cores e atributos que podem ser aplicados ao texto
 class Color:
     END = '\33[0m'
     BOLD = '\33[1m'
@@ -44,6 +45,8 @@ class Color:
     WHITEBG2 = '\33[107m'
 
 
+# classe auxiliar para assegurar que todas chaves essencias estão presentes no
+# dicionário passado à função _print e que as mesmas tenham o mesmo nome
 class Keys:
     text = 'text'
     color = 'color'
@@ -54,9 +57,15 @@ class Keys:
     end = 'end'
 
 
+# função responsável por 'embelezar' o texto, aceita apenas um vetor como
+# argumento, nesse vetor devem conter dicionários para cada palavra
+# se raw: o texto não será impresso mas será retornado
 def _print(args, raw=False):
     import os
+    # rows e column tem o tamanho do terminal
     rows, columns = os.popen('stty size', 'r').read().split()
+    # line é o caractér a ser usado para preencher a linha quando alert for
+    # True
     line = '-' * int(columns)
     final_string = ''
     end = '\n'
@@ -92,39 +101,69 @@ def _print(args, raw=False):
         return final_string
     print(final_string, end=end)
 
+# exemplo de uso da função print:
+# _print([
+#     {
+#         Keys.text: 'texto um',
+#         Keys.color: Color.RED,
+#         Keys.background: Color.BEIGEBG2,
+#         Keys.bold: True,
+#         Keys.alert: False
+#     }],
+#     {
+#         Keys.text: 'texto dois',
+#         Keys.color: Color.YELLOW,
+#         Keys.background: Color.REDBG,
+#         Keys.underline: True,
+#         Keys.end: '\n\n'
+#     })
 
+
+# funçao responsável por criar o dicionário enviado à funcão _print. Em
+# contrapartida só imprime o texto sem variação de cores
+# se raw: o texto não será impresso mas será retornado
 def colorize(text, color, bold=False, underline=False, background=None,
              alert=False, end='\n', raw=False):
     _string = _print([{
-        Keys.text: text,
-        Keys.color: color,
-        Keys.background: background,
-        Keys.bold: bold,
-        Keys.alert: alert,
-        Keys.underline: underline,
-        Keys.end: end
+        Keys.text: text,  # texto a ser impresso na tela
+        Keys.color: color,  # cor do texto
+        Keys.background: background,  # cor de fundo
+        Keys.bold: bold,  # negrito (bool)
+        Keys.alert: alert,  # se True, ocupará 3 linhas e o texto será
+                            # centralizado com preenchimento em cima e
+                            # embaixo(bool)
+        Keys.underline: underline,  # sobscrito (bool)
+        Keys.end: end  # valor final do texto
     }], raw=True)
     if raw:
         return _string
     print(_string, end=end)
 
 
+# todas as funções abaixo, exceto question, implementam alert como True
+
+# fundo vermelho com texto em branco
 def danger(text, bold=True, background=Color.REDBG, alert=True):
     colorize(text, Color.WHITE, bold, False, background, alert)
 
 
+# fundo amarelo com texto em branco
 def warning(text, bold=True, background=Color.YELLOWBG, alert=True):
     colorize(text, Color.WHITE, bold, False, background, alert)
 
 
+# fundo verde com texto em branco
 def success(text, bold=True, background=Color.GREENBG, alert=True):
     colorize(text, Color.WHITE, bold, False, background, alert)
 
 
+# fundo azul com texto em branco
 def info(text, bold=True, background=Color.BLUEBG, alert=True):
     colorize(text, Color.WHITE, bold, False, background, alert)
 
 
+# texto a ser impresso na hora de realizar um input; fundo azul com texto em
+# branco
 def question(text):
     return colorize(text, Color.WHITE, False, False, Color.BLUEBG, False, '',
                     raw=True) + ' '

@@ -1,5 +1,13 @@
 from model import Model
 
+# cada model implementado abaixo representa uma tabela do banco de dados, dessa
+# forma o acesso é mais fácil.
+# Cada model precisa passar ao construtor do Model a tabela que ele representa
+# junto das colunes que possui. Além disso, precisam sobreescrever os campos
+# que podem ser preenchidos (self.fillable), a chave primária (se for diferente
+# de 'id'(self.primary_key)).
+# depois disso, todos as funções em Model podem ser acessadas.
+
 
 class Player(Model):
 
@@ -52,6 +60,7 @@ class PlayerPokemon(Model):
                                                                'created_at',
                                                                'updated_at'])
         self.fillable = ['player_login', 'pokemon_name', 'name']
+        # name representa um nome dado ao pokemon pelo usuário
 
 
 class Type(Model):
@@ -70,4 +79,4 @@ class Weakness(Model):
                                                       'damage_multiplier'])
         self.primary_key = 'attacking_type'
         self.fillable = ['attacking_type', 'defending_type',
-                         'damage_multiplier'])
+                         'damage_multiplier']

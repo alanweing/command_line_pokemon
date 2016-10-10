@@ -1,12 +1,15 @@
 import _print
 
 
+# função auxiliar para dar mostrar alguma informação útil e sair do programa
 def die(message=None):
     if message is not None:
         _print.warning(str(message))
     exit(0)
 
 
+# funçao que ordena a lista passada, utilizando o método selection_sort e
+# como e crescente padrão
 def _sort(_list, sort_order='crescent', sort_method='selection_sort'):
     if sort_method == 'selection_sort':
         _list = selection_sort(_list)
