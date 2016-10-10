@@ -5,47 +5,48 @@ favor, executar o comando 'god_mode'. Todos os comandos disponíveis estão
 descritos a partir da linha 119 desse README
 
 Módulos NECESSÁRIOS:
-                -> pymysql
-                -> numpy
+------
+  * pymysql
+  * numpy
 
 
-=>env.py
-
-    Para iniciar, altere as credenciais contidas no arquivo 'env.py' de acordo
+env.py
+======
+Para iniciar, altere as credenciais contidas no arquivo 'env.py' de acordo
 com o banco de dados local (linhas 1 a 5), que deve ser MariaDB ou MySQL.
-    Não é necessário a criação do banco de dados, o programa irá criar se
+Não é necessário a criação do banco de dados, o programa irá criar se
 não encontrar o banco especificado na variável DB (env.py).
 
-    Tudo que está dentro de POKEMONS e GLOBALS são configurações básicas para o
+Tudo que está dentro de POKEMONS e GLOBALS são configurações básicas para o
 funcionamento do programa. SPAWN_RATIO_* descreve a probabilidade de encontrar
 um pokemon para cada tipo de raridade. Variáveis definidas em GLOBALS
 especifiam o tempo de espera para cada ato (ver nome da variável).
 
 
 
-=>PONTOS DE INTERESSE PARA O TRABALHO:
+PONTOS DE INTERESSE PARA O TRABALHO:
+======
 
-    ::Para cada monstro deve-se saber o nome, nível na classificação de raridade e
-pelo menos mais uma caraterística a sua escolha:
-    Todas as características estão armazenadas no banco de dados e podem saber
-facilmente recuperadas com os seguintes comandos:
+Para cada monstro deve-se saber o nome, nível na classificação de raridade e pelo menos mais uma caraterística a sua escolha:
+------
+Todas as características estão armazenadas no banco de dados e podem saber facilmente recuperadas com os seguintes comandos:
     from models import Pokemon
+```python
     # encontrar pelo nome:
     poke = Pokemon().where('name = "{}"'.format(nome_do_pokemon))
     # ou também, como nome é uma PK:
     poke = Pokemon().find(nome_do_pokemon)
     # encontrar por raridade
     poke = Pokemon().where('rarity = "{}"'.format(raridade))
-    # a função 'where' pode recuperar qualquer dado, desde que as condições
-estejam na variável 'fields' que é executada na inicialização do Model
+    # a função 'where' pode recuperar qualquer dado, desde que as condições estejam na variável 'fields' que é executada na inicialização do Model
+```
 
-    ::O algoritmo deve colocar os pokémons em ordem alfabética utilizando um dos
-seguintes métodos: selection, insertion, quicksort ou mergesort.
-    Os algorítmos estão implementados no arquivo functions.py. E são utilizados
-no arquivo controllers.py, nos métodos:
-    ->order_pokemons(self, order_by)
-    ->generate_vio(self, order_by)
-    Cada qual está devidamente comentado na sua utilização (linha 114 controllers.py)
+O algoritmo deve colocar os pokémons em ordem alfabética utilizando um dos seguintes métodos: selection, insertion, quicksort ou mergesort.
+------
+Os algorítmos estão implementados no arquivo functions.py. E são utilizados no arquivo controllers.py, nos métodos:
+* order_pokemons(self, order_by)
+* generate_vio(self, order_by)
+Cada qual está devidamente comentado na sua utilização (linha 114 controllers.py)
 
     ::Além disso, através de VIOs ou encadeamento, você deve apresentar de forma
 ordenada, os monstros capturados de acordo o nível de raridade e a outra
@@ -117,16 +118,19 @@ a ser passado ao _print.
     Todas os demais casos de uso estão exemplificados e comentados em código.
 
 
-=>COMANDOS ACEITOS PELO terminator:
+COMANDOS ACEITOS PELO terminator
+======
 
-# CREDENCIAIS
-    $ login
-    $ register
+CREDENCIAIS
+------
+* login
+* register
 
-# DEPOIS DE AUTORIZADO
-    $ pokemon list (lista todos os pokemons do usuário)
-    $ pokemon rename 'name' (renomeia o pokemon 'name' do usuário)
-    $ pokemon sort 'sort_order'
+DEPOIS DE AUTORIZADO
+------
+* pokemon list (lista todos os pokemons do usuário)
+* pokemon rename 'name' (renomeia o pokemon 'name' do usuário)
+* pokemon sort 'sort_order'
         sort_order pode ser:
             - type (gera um VIO e mostra os pokemons ordenados por tipo)
             - rarity (gera um VIO e mostra os pokemons ordenados por raridade)
@@ -134,13 +138,13 @@ a ser passado ao _print.
             - pokemon (ordena fisicamente os pokemons por nome de pokemon)
         pokemons ordenados fisicamente não são mostrados na tela e, para isso,
         deve se chamar 'pokemon list'.
-    $ hunt (caça um pokemon. Esse pokemon é definido aleatoriamente, sendo que
+* hunt (caça um pokemon. Esse pokemon é definido aleatoriamente, sendo que
         as probabilidades para cada raridade de pokemon estão definidas no
         arquivo env.py. Pode-se também ser encontrado um ovo que depois de x
         segundos (sendo x também definido em env.py) gera um pokemon aleatório
         tendo sua raridade 'very common'. Se o jogador já tiver um pokemon e
         ao caçar encontrar outro pokemon, o sistema de batalha é chamado, mas
         esse ainda não está implentado)
-    $ help (mostra todos os comandos disponíveis)
-    $ exit (sai do programa)
-    $ god_mode (todos os pokemons disponiveis são atribuidos ao jogador)
+* help (mostra todos os comandos disponíveis)
+* exit (sai do programa)
+* god_mode (todos os pokemons disponiveis são atribuidos ao jogador)
